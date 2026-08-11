@@ -1,5 +1,5 @@
 # THE BLIND CITY — COMPLETE DESIGN WORKLOG (GDD)
-**Version 1.3 | 2D Top-Down Survival-Horror | Single-Player + Co-op (2-4)**  
+**Version 1.4 | 2D Top-Down Survival-Horror | Single-Player + Co-op (2-4)**  
 *Inspired by: Hell is Others, Dying Light, Darkest Dungeon (atmosphere)*
 
 ---
@@ -58,9 +58,9 @@ No timers, no UI meters. The cycle progresses **globally in real-time** during a
 
 | Phase | Duration (Approx) | Monster Behavior | Visual/Audio Cue |
 |-------|-------------------|------------------|------------------|
-| **1: The Silence** | 0–5 min | Monsters are **static statues**. Zero patrols. Hearing radius: tiny (5 tiles). | Complete eerie quiet. Subtle wind, ambient city hum. |
+| **1: The Silence** | 0–5 min | Monsters are **static statues**. No reaction to footsteps. **Investigate gunshots** (walk to location, search 3-5 seconds, return to static if player not found). | Complete eerie quiet. Subtle wind, ambient city hum. |
 | **2: The Whispers** | 5–12 min | Monsters **awaken**. They wander randomly (procedural paths, no static waypoints needed). Hearing radius doubles (10 tiles). | Low guttural hums, flickering lights. UI icon shifts to "Alert". |
-| **3: The Frenzy** | 12+ min | Monsters sprint. Hearing radius triples (15 tiles). They actively hunt toward any sound. Spawn rates increase. | Screeching sirens, howling echoes, red screen vignette. |
+| **3: The Frenzy** | 12+ min | Monsters sprint. Hearing radius triples (15 tiles). They actively hunt toward any sound. | Screeching sirens, howling echoes, red screen vignette. |
 
 **Phase Transition**: Audio cues play globally (e.g., a distant whisper/guttural growl for Phase 2, a siren for Phase 3) so players *feel* the shift without looking at a UI.
 
@@ -72,7 +72,7 @@ No timers, no UI meters. The cycle progresses **globally in real-time** during a
 - Player interacts with any elevator.
 - A **15-second countdown** begins (UI: "ELEVATOR ARRIVING: 15s").
 - A loud mechanical **alarm** blares, attracting all monsters within **30 tiles** to rush the elevator.
-- Monsters spawned during the siege also join the hunt.
+- Only **existing** monsters rush the elevator. **No new monsters spawn** during the siege.
 - When countdown hits 0, doors open. Player walks in. Instant extraction. Run ends.
 
 **Future Innovations (Modular)**:
@@ -97,9 +97,16 @@ All Shivers are **blind**. They rely entirely on **hearing**. No "partial sight.
 
 | Phase | Rusher | Brute | Lurker |
 |-------|--------|-------|--------|
-| **Phase 1: The Silence** | Static statue. No reaction. | Static statue. No reaction. | Static statue. No reaction. |
-| **Phase 2: The Whispers** | Random roam. Reacts to footsteps/gunshots. | Random roam. Reacts to gunshots only. | Moves outside 120° view cone. Freezes inside cone. |
+| **Phase 1: The Silence** | Static statue. No reaction to footsteps. **Investigates gunshots** (walks to sound location, searches 3-5 seconds, returns to original static position if player not found). | Static statue. No reaction to footsteps. **Investigates gunshots** (walks to sound location, searches 3-5 seconds, returns to original static position if player not found). | Static statue. No reaction. (No hearing.) |
+| **Phase 2: The Whispers** | Random roam. Reacts to footsteps (investigate). Reacts to gunshots (rush to location). | Random roam. Reacts to gunshots only (rush to location). Ignores footsteps. | Moves outside 120° view cone. Freezes inside cone. |
 | **Phase 3: The Frenzy** | Sprints toward any sound. | Sprints toward gunshots only. Ignores footsteps. | Moves faster outside cone. Freezes inside cone. |
+
+**Investigation Behavior (Phase 1 - Gunshots)**:
+- On gunshot, the monster wakes from its static state.
+- It moves toward the gunshot location at **walking speed**.
+- Upon reaching the location, it **searches** for 3-5 seconds (small random patrol around the area).
+- If it doesn't detect the player (via sound or contact), it returns to its **original static position** and resets to statue state.
+- If it *does* detect the player (footsteps, or the player shoots again), it transitions to **Phase 2 behavior** (chase/investigate) permanently for that monster (it stays awake).
 
 **Lurker Detailed Behavior**:
 - **View Cone**: 120° centered on player's aim direction.
@@ -108,18 +115,24 @@ All Shivers are **blind**. They rely entirely on **hearing**. No "partial sight.
 - **Attack**: If it reaches melee range (2 tiles) while player isn't looking, it attacks immediately.
 - **Counter-Play**: Sweep your aim to "check" corners and doorways.
 
+---
+
 ### Tier 1.5: The Remnants (Trap Monsters - No Hearing)
 
 These do NOT react to sound. They are environmental hazards.
 
 | Name | Classification | Behavior | Phase Restriction |
 |------|---------------|----------|-------------------|
-| **The Effigy** | Statue Trap | Looks like decorative statue. Moves only when player's **back is turned** (180° behind). Freezes when player faces it. Moves silently. Attacks when reaching melee range. | Active in **all phases**. |
+| **The Effigy** | Statue Trap | Looks like decorative statue (mannequin, gargoyle, angel). Moves only when player's **back is turned** (180° behind). Freezes when player faces it. Moves silently. Attacks when reaching melee range. | Active in **all phases**. |
 | **The Hanger** | Wall Trap | Clings to ceilings/walls. Lunges/drops when player walks directly beneath it (within 2 tiles). Deals damage and briefly slows the player. | Active only in **Phase 2+** (sleeps in Phase 1). |
 
 **Counter-Play**:
 - **Effigy**: Look behind you when entering new rooms. Stare at it while backing away.
 - **Hanger**: Look up! Shoot before passing under, or take a wide berth.
+
+**Key Distinction**: The Lurker (Shivers) is tied to your **view cone** (120° forward). The Effigy (Remnants) is tied to your **back** (global 180° behind). This creates two distinct stealth threats: one that punishes tunnel vision, one that punishes carelessness.
+
+---
 
 ### Tier 2: The Apex (Mini-Bosses - Placeholders)
 
@@ -129,6 +142,7 @@ These do NOT react to sound. They are environmental hazards.
 - Already on the map at run start. Found in **fixed locations**.
 - They are **sleeping** (static statue) when the run begins.
 - Wake up when the Hibernation Cycle reaches their designated phase.
+- Player can see them sleeping before they wake.
 
 | Name (Placeholder) | District | Wake Phase | Behavior (Draft) | Weakness (Draft) |
 |--------------------|----------|------------|------------------|------------------|
@@ -138,6 +152,8 @@ These do NOT react to sound. They are environmental hazards.
 | **The Siren** | Industrial | Phase 3 | Emits sound pulse every 5 seconds. Pulls all monsters toward its location. | Doesn't chase. Easy to kill if you reach it. |
 
 **Fixed Difficulty**: HP and damage are fixed for V1. Future "Variant" system can add tougher versions.
+
+---
 
 ### Tier 3: The Origin (Final Boss - Undecided)
 
@@ -151,8 +167,8 @@ These do NOT react to sound. They are environmental hazards.
 |------|----------|
 | **Spawn Timing** | All monsters (Shivers, Remnants, Apex) are placed on the map **at run start**. |
 | **Dynamic Spawns** | **None.** No vents, no closets, no siege spawns. |
-| **Extraction Siege** | Only **existing** monsters rush the elevator. No new spawns. |
-| **Death** | Monsters are **permanently removed** when killed. No respawns. |
+| **Extraction Siege** | Only **existing** monsters rush the elevator. **No new spawns.** |
+| **Death** | Monsters are **permanently removed** when killed. **No respawns.** |
 | **Clearing** | If you kill all monsters in a district, that district becomes **completely safe** for the rest of the run. |
 
 ---
@@ -215,6 +231,7 @@ After death or extraction, spend resources (scrap, blood, electronics) on perman
   - Plays **one random Rumor** per run *before* you descend.
   - If you leave without listening, you play a **"Neutral" run** (no modifiers).
   - The Rumor **overrides** the rules for a specific district for that run only.
+  - All other districts remain accessible in their neutral state.
 
 ---
 
@@ -222,21 +239,21 @@ After death or extraction, spend resources (scrap, blood, electronics) on perman
 
 | Rumor Name | Broadcast Text | Gameplay Override | Strategic Impact |
 |------------|----------------|-------------------|-------------------|
-| **"Empty Nest"** | *"Heard the Shivers are migrating to the Subway today. Hospital is dead quiet."* | **Hospital District**: 50% fewer monsters. Loot is standard. | **Safe looting.** Ideal for beginners or low-health runs. |
-| **"Golden Haul"** | *"A supply chopper crashed in the Industrial Zone. Heard it's loaded."* | **Industrial District**: Spawns **1 Guaranteed Rare Crate** (endgame gun OR 3x medkits) in a fixed landmark. All other loot disabled. | **High-risk target.** Monsters cluster around it. |
-| **"Blackout"** | *"Power grid is failing in the Subway. It's pitch black down there."* | **Subway District**: No ambient streetlights. Only flashlight works. Monsters start in **Phase 2** immediately. | **Atmospheric terror.** Forces flashlight management. |
-| **"Horde Migration"** | *"The tunnels are flooded. They're all moving to the surface."* | **All Districts**: +25% more monster spawns. BUT extraction elevators arrive in **5 seconds** (instead of 15). | **Chaos vs. Safety.** More enemies, faster escape. |
-| **"Survivor Signal"** | *"A survivor is broadcasting from the Police HQ. They have medicine."* | **Police HQ**: Spawns a **friendly NPC survivor** in a locked room. Gives Lore Fragment + permanent buff. | **Story progression.** Essential for 100% completion. |
+| **"Empty Nest"** | *"Heard the Shivers are migrating to the Subway today. Hospital is dead quiet."* | **Hospital District**: 50% fewer monsters. Loot is standard (no bonus). | **Safe looting.** Ideal for beginners or low-health runs. |
+| **"Golden Haul"** | *"A supply chopper crashed in the Industrial Zone. Heard it's loaded."* | **Industrial District**: Spawns **1 Guaranteed Rare Crate** (endgame gun OR 3x medkits) in a fixed landmark. All other loot in that district is disabled. | **High-risk target.** You know exactly where the treasure is, but monsters cluster around it. |
+| **"Blackout"** | *"Power grid is failing in the Subway. It's pitch black down there."* | **Subway District**: No ambient streetlights. Only your flashlight works. Monsters start in **Phase 2** (The Whispers) immediately. | **Atmospheric terror.** Forces flashlight management and tight corridor fights. |
+| **"Horde Migration"** | *"The tunnels are flooded. They're all moving to the surface."* | **All Districts**: +25% more monster spawns. BUT extraction elevators arrive in **5 seconds** (instead of 15). | **Chaos vs. Safety.** More enemies, but a faster escape. Great for aggressive players. |
+| **"Survivor Signal"** | *"A survivor is broadcasting from the Police HQ. They have medicine."* | **Police HQ**: Spawns a **friendly NPC survivor** in a locked room. If you reach them, they give you a **Lore Fragment** (story progression) and a permanent buff (e.g., +10 max HP). | **Story progression.** Essential for 100% completion. |
 
-**Design Note**: The Rumor **overrides** the district's standard rules—it does not add on top. This forces a sharp choice: follow the rumor for a specific reward, or ignore it and play a neutral, predictable run.
+**Design Note**: The Rumor **overrides** the district's standard rules—it does not add on top. This forces a sharp choice: "Do I follow the rumor for a specific reward, or ignore it and play a neutral, predictable run?"
 
 ---
 
 ## 11. CO-OP (2-4 Players)
 
-- **Shared Screen**: Camera centers on all players. If they split far apart, camera zooms out (monsters get a slight "alert" buff when players split beyond 20 tiles).
-- **Revive**: Downed player enters a **bleed-out state** (30 seconds). Teammate presses 'E' to revive (takes 3s, immobilizes reviver). Alternatively, use a Medkit for instant revive.
-- **Sacrifice Mechanic**: During extraction siege, only one player needs to be inside the elevator for departure. Others can "Hold Doors" (hold E) to extend timer by 5s, but cannot shoot while holding.
+- **Shared Screen**: Camera centers on all players. If they split far apart, camera zooms out (monsters get a slight "alert" buff when players are separated beyond 20 tiles).
+- **Revive**: Downed player enters a **bleed-out state** (30 seconds). Teammate can press 'E' to revive (takes 3 seconds, immobilizes the reviver). Alternatively, use a rare **Medkit** for instant revive.
+- **Sacrifice Mechanic**: During extraction siege, only one player needs to be inside the elevator for it to depart. Other players can "Hold Doors" (press and hold E) to extend the timer by 5 seconds, but they are vulnerable and cannot shoot while holding.
 - **Balance**: Monster spawns and HP scale with player count (2x HP for 2 players, 3x for 3, etc.).
 
 ---
@@ -267,30 +284,41 @@ After death or extraction, spend resources (scrap, blood, electronics) on perman
 
 **Prompt 3.5: Monster AI (Rusher, Brute, Lurker)**
 > *"Godot 4.3. Create three monster scenes:*
-> - *Rusher: Fast, low HP. Hearing-based. Static in Phase 1, random roam in Phase 2, sprint toward sound in Phase 3.*
-> - *Brute: Slow, high HP. Hearing-based. Static in Phase 1, random roam in Phase 2, sprint toward gunshots only in Phase 3.*
-> - *Lurker: Moves only when NOT in the player's 120° view cone. Freezes instantly when inside the view cone. Attacks when reaching melee range. Use a RayCast/Area2D for the view cone check. No hearing.*"
+>
+> *- Rusher: Fast, low HP. Hearing-based.*
+>   *- Phase 1: Static statue. No reaction to footsteps. Reacts to gunshots by walking to the sound location, searching for 3 seconds, then returning to its original static position.*
+>   *- Phase 2: Random roam. Reacts to footsteps (investigate). Reacts to gunshots (rush to location).*
+>   *- Phase 3: Sprints toward any sound.*
+>
+> *- Brute: Slow, high HP. Hearing-based.*
+>   *- Phase 1: Static statue. No reaction to footsteps. Reacts to gunshots by walking to the sound location, searching for 3 seconds, then returning to its original static position.*
+>   *- Phase 2: Random roam. Reacts to gunshots only (rush to location). Ignores footsteps.*
+>   *- Phase 3: Sprints toward gunshots only. Ignores footsteps.*
+>
+> *- Lurker: Moves only when NOT in the player's 120° view cone. Freezes instantly when inside the view cone. Attacks when reaching melee range. Use a RayCast/Area2D for the view cone check. No hearing. Static in Phase 1, moves in Phase 2/3.*
+>
+> *All monsters use NavigationAgent2D for pathfinding. No dynamic spawning—all monsters are placed at run start. Store the monster's original spawn position so it can return there after Phase 1 gunshot investigation."*
 
 **Prompt 3.6: Trap Monsters (Effigy, Hanger)**
 > *"Godot 4.3. Create two trap monster scenes:*
-> - *Effigy: Statue that moves only when the player's back is turned (player is facing away > 90°). Freezes when player faces it. Silent movement. Attacks when reaching melee range. No hearing.*
-> - *Hanger: Clings to ceilings/walls. Sleeps in Phase 1. In Phase 2+, lunges at the player when they walk within 2 tiles. Deals damage and applies a 1-second slow. No hearing.*"
+> *- Effigy: Statue that moves only when the player's back is turned (player is facing away > 90°). Freezes when player faces it. Silent movement. Attacks when reaching melee range. No hearing.*
+> *- Hanger: Clings to ceilings/walls. Sleeps in Phase 1. In Phase 2+, lunges at the player when they walk within 2 tiles. Deals damage and applies a 1-second slow. No hearing."*
 
 **Prompt 3.7: Apex (Mini-Boss) System**
 > *"Godot 4.3. Create Apex mini-boss scenes (placeholders). All are placed at run start, stationary/sleeping:*
-> - *Warden (Police HQ): Wakes in Phase 2. Riot shield blocks frontal damage. Fires shotgun. Needs flanking.*
-> - *Fleshweaver (Hospital): Wakes in Phase 2. Heals monsters within 10 tiles. Does not attack.*
-> - *Burrower (Subway): Wakes in Phase 3. Burrows underground. Emerges for 5 seconds to attack, then burrows again.*
-> - *Siren (Industrial): Wakes in Phase 3. Emits a sound pulse every 5 seconds that redirects all monsters toward it. Does not chase player.*"
+> *- Warden (Police HQ): Wakes in Phase 2. Riot shield blocks frontal damage. Fires shotgun. Needs flanking.*
+> *- Fleshweaver (Hospital): Wakes in Phase 2. Heals monsters within 10 tiles. Does not attack.*
+> *- Burrower (Subway): Wakes in Phase 3. Burrows underground. Emerges for 5 seconds to attack, then burrows again.*
+> *- Siren (Industrial): Wakes in Phase 3. Emits a sound pulse every 5 seconds that redirects all monsters toward it. Does not chase player."*
 
 **Prompt 4: Extraction Elevator + Siege**
-> *"Create an elevator scene. On interaction, play an alarm sound, show a 15-second countdown UI, and broadcast a 'hunt' signal that forces all monsters within a 30-tile radius to move toward the elevator. When timer hits 0, open doors and end the run (return to apartment hub)."*
+> *"Create an elevator scene. On interaction, play an alarm sound, show a 15-second countdown UI, and broadcast a 'hunt' signal that forces all monsters within a 30-tile radius to move toward the elevator. Only existing monsters move—no new spawns. When timer hits 0, open doors and end the run (return to apartment hub)."*
 
 **Prompt 5: Persistent City + Loot Respawn**
 > *"Create a WorldManager.gd that saves the city layout (tilemap, static objects, building positions). On each new run, randomize loot container contents using location-based tables (Hospital = meds/water, Police = ammo, Industrial = scrap/food, Subway = electronics). Randomize monster spawn positions. Story keys and lore fragments persist across runs."*
 
 **Prompt 6: The Radio Rumor System**
-> *"Create an Autoload 'RadioManager.gd'. At the start of each run, randomly select one Rumor from a dictionary. Display rumor text in a UI panel inside the Apartment scene before player leaves. When descending, apply rumor's override to the target district. If player doesn't interact with radio, no override is applied."*
+> *"Create an Autoload 'RadioManager.gd'. At the start of each run, randomly select one Rumor from a dictionary (Empty Nest, Golden Haul, Blackout, Horde Migration, Survivor Signal). Display rumor text in a UI panel inside the Apartment scene before player leaves. When descending, apply rumor's override to the target district. All other districts remain neutral. If player doesn't interact with radio, no override is applied."*
 
 **Prompt 7: Apartment Hub (Storage, Crafting, Marrow Still)**
 > *"Create an Apartment scene with: (1) Storage container saving item lists between runs, (2) Crafting bench combining materials into noise grenades, water filters, and medkits, (3) A Marrow Still & Bone Press station where depositing Monster Blood + Monster Bones produces special debuff ammo after 1 run cycle. Use a clean UI with buttons and inventory slots."*
@@ -306,9 +334,10 @@ After death or extraction, spend resources (scrap, blood, electronics) on perman
 | **Map** | Fixed persistent city. Loot/monsters reset per run. |
 | **Loot** | Location-based + random tables (includes Food & Water). No time scaling. |
 | **Clock** | Hibernation Cycle (*The Silence* → *The Whispers* → *The Frenzy*). |
-| **Extraction** | 15-second siege. Alarm pulls monsters within 30 tiles. |
+| **Extraction** | 15-second siege. Alarm pulls monsters within 30 tiles. **No new spawns.** |
 | **Monsters (Normal)** | Rusher, Brute, Lurker (LC-style view cone). |
 | **Monsters (Trap)** | Effigy (statue, back-turn), Hanger (wall, proximity). No hearing. |
+| **Phase 1 Gunshots** | Rusher & Brute investigate gunshots, then return to static if player not found. |
 | **Monster Spawning** | Fixed set at run start. No dynamic spawns. No siege spawns. |
 | **Monster Death** | Permanent removal. No respawns. |
 | **Apex (Mini-Bosses)** | Placeholders for now. Design parked for future. |
